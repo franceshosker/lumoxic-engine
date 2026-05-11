@@ -1,85 +1,40 @@
 # Lumoxic Engine
 
-Core computational engine for [Lumoxic AI](https://lumoxicai.me) photon computing research.
+The optimization engine behind [Lumoxic AI](https://lumoxicai.me) — a FastAPI service that quantizes, prunes, and benchmarks ONNX models.
 
-The engine converts light into binary data using the **Binary Bounce Engine** — photons bounce off reflective surfaces, and each bounce angle is converted to a binary bit (angle ≥ 45° → `1`, angle < 45° → `0`).
+## Features
 
-## Installation
-
-```bash
-pip install -e .
-```
-
-For development:
-```bash
-pip install -e ".[dev]"
-```
+- **Dynamic INT8/INT4 Quantization** — Post-training quantization via ONNX Runtime
+- **Graph Optimization** — Operator fusion, constant folding, dead node elimination
+- **Benchmarking** — Per-inference latency, energy, and throughput measurement
+- **REST API** — Upload a model, get back an optimized version
 
 ## Quick Start
 
-### Python API
-
-```python
-from lumoxic import Client
-
-client = Client(threshold=45.0, seed=42)
-
-# Process a single photon
-result = client.process(wavelength=450, angle=37, bounces=8)
-print(result.binary_stream.as_string)  # e.g. "01101010"
-
-# Run batch simulation
-result = client.simulate(photon_count=256, wavelength=450)
-print(f"Generated {result.binary_stream.length} bits")
-print(f"Entropy: {result.binary_stream.entropy:.4f}")
-
-# Analyze binary output
-analysis = client.analyze(result.binary_stream.bits)
-print(f"Frequency: {analysis['frequency']}")
-```
-
-### CLI
-
 ```bash
-# Process a single photon
-lumoxic process --wavelength 450 --angle 37 --bounces 8
-
-# Run simulation
-lumoxic simulate --photons 256 --wavelength 450 --json
-
-# Train LNBE model
-lumoxic train --epochs 100 --samples 1000
+pip install -r requirements.txt
+python api.py
 ```
 
-## Architecture
+Server starts on `http://0.0.0.0:8081`.
 
-```
-lumoxic/
-├── client.py          # Unified Client API
-├── cli.py             # Command-line interface
-├── core/              # Types, constants
-├── photon/            # Photon emission and processing
-├── bounce/            # Binary Bounce Engine (core simulation)
-├── binary/            # Angle-to-bit encoding, stream assembly, pattern analysis
-├── models/            # LNBE neural network, inference, training
-├── optics/            # Wavelength analysis, refraction (Snell's law)
-└── probability/       # Probability field mapping
-```
+## API Endpoints
 
-## Core Concept
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/v1/optimize` | Upload .onnx model for optimization |
+| GET | `/v1/jobs/{id}` | Check job status |
+| GET | `/v1/jobs/{id}/result` | Get optimization results |
+| GET | `/v1/models/{id}/download` | Download optimized model |
+| POST | `/v1/benchmark` | Benchmark without optimizing |
+| GET | `/v1/health` | Health check |
 
-The Binary Bounce Engine works by:
-1. **Emitting** a photon at a specific wavelength and angle
-2. **Bouncing** it off reflective surfaces (glass, mirror, crystal)
-3. **Encoding** each bounce angle to binary (≥45° = 1, <45° = 0)
-4. **Assembling** the bits into a binary stream for AI training
+## Stack
 
-## Tests
-
-```bash
-pytest tests/ -v
-```
+- **FastAPI** + **Uvicorn**
+- **ONNX Runtime** (quantization + inference)
+- **NumPy** (benchmarking)
 
 ## License
 
-MIT — Copyright 2026 Lumoxic AI
+All rights reserved. © 2026 Lumoxic AI.
